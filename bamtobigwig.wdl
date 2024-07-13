@@ -18,7 +18,7 @@ workflow bamtobigwig {
     }
     call filter {
         input:
-            sortedbam = minimapalign.sortedbam
+            sortedbam = minimapalign.sortedbam,
             mapqmin = mapqmin
     }
     call tobedgraph {
