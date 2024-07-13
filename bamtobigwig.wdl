@@ -8,6 +8,7 @@ workflow bamtobigwig {
         File fastq
         String modmotif
         String modkitoptions
+        String mapqmin
     }
 
     call minimapalign {
@@ -18,6 +19,7 @@ workflow bamtobigwig {
     call filter {
         input:
             sortedbam = minimapalign.sortedbam
+            mapqmin = mapqmin
     }
     call tobedgraph {
         input:
@@ -65,9 +67,10 @@ task minimapalign {
 task filter {
     input {
         File sortedbam
+        String mapqmin
     }
     command <<<
-    samtools view -bh -q 25 ~{sortedbam} > filtered.bam
+    samtools view -bh -q ~{mapqmin} ~{sortedbam} > filtered.bam
     samtools index filtered.bam
     >>>
     runtime {
