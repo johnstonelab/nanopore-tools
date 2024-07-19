@@ -8,6 +8,7 @@ workflow dorado_basecall {
         File fast5_archive
         String basecall_model
         String kitname
+        Int disk_gb
     }
 
     call basecall {
@@ -16,7 +17,8 @@ workflow dorado_basecall {
             fast5_archive = fast5_archive,
             modtype=modtype,
             basecall_model = basecall_model,
-            kitname = kitname
+            kitname = kitname,
+            disk_gb = disk_gb
     }
     call demux {
         input:
@@ -41,7 +43,7 @@ task basecall  {
         String basecall_model
         String modtype
         String kitname
-        Int disk_gb = ceil(size(fast5_archive, "GB")*3) + 5
+        Int disk_gb #= ceil(size(fast5_archive, "GB")*3) + 5
     }
     command <<<
         filetype=$(file ~{fast5_archive})
