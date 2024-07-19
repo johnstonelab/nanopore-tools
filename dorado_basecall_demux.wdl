@@ -89,7 +89,7 @@ task basecall  {
         disks: "local-disk " + disk_gb + " SSD" 
         memory: "32GB"
         machineType: "a2-highgpu-1g"
-        nvidiaDriverVersion: "470.161.03"
+        nvidiaDriverVersion: "550.90.07"
         zones: ["us-central1-a"] 
         docker: "us-central1-docker.pkg.dev/aryeelab/docker/dorado"
     }
