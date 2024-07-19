@@ -104,7 +104,7 @@ task demux {
     }
     command <<<
         mkdir out
-        dorado demux -o ./out --no-classify ~{unmapped.bam} 
+        dorado demux -o ./out --no-classify ~{unmapped_bam} 
     >>>
     runtime {
         docker: "us-central1-docker.pkg.dev/aryeelab/docker/samtools:latest"
