@@ -87,7 +87,7 @@ task basecall  {
         gpuCount: 1
         cpu: 12
         disks: "local-disk " + disk_gb + " SSD" 
-        memory: "32GB"
+        memory: "85GB"
         machineType: "a2-highgpu-1g"
         nvidiaDriverVersion: "550.90.07"
         zones: ["us-central1-a"] 
