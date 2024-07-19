@@ -7,6 +7,7 @@ workflow dorado_basecall {
         String modtype
         File fast5_archive
         String basecall_model
+        String kitname
     }
 
     call basecall {
@@ -14,9 +15,10 @@ workflow dorado_basecall {
             sample_id = sample_id,
             fast5_archive = fast5_archive,
             modtype=modtype,
-            basecall_model = basecall_model
+            basecall_model = basecall_model,
+            kitname = kitname
     }
-    call makefastqs {
+    call demux {
         input:
             unmapped_bam = basecall.unmapped_bam
     }
@@ -24,7 +26,7 @@ workflow dorado_basecall {
         File unmapped_bam = basecall.unmapped_bam
         File? duplex_unmapped_bam = basecall.duplex_unmapped_bam
         File? pairs = basecall.pairs
-        File fastq = makefastqs.fastq
+        Array[File] bams = demux.bams
     }
 
     meta {
@@ -38,6 +40,7 @@ task basecall  {
         File fast5_archive
         String basecall_model
         String modtype
+        String kitname
         Int disk_gb = ceil(size(fast5_archive, "GB")*3) + 5
     }
     command <<<
@@ -65,7 +68,7 @@ task basecall  {
         fi
         
         # Simplex call with --emit-moves and --modified-bases
-        dorado basecaller /dorado_models/~{basecall_model} pod5s~{modtype} --emit-moves | samtools view -Sh > ~{sample_id}.unmapped.bam
+        dorado basecaller ~{kitname} --no-trim /dorado_models/~{basecall_model} pod5s~{modtype} --emit-moves > ~{sample_id}.unmapped.bam
 
         # Identify potential pairs
         duplex_tools pair --output_dir ./pairs ~{sample_id}.unmapped.bam
@@ -80,7 +83,7 @@ task basecall  {
         fi
     >>>
     runtime {
-        gpuType: "nvidia-tesla-v100"
+        gpuType: "nvidia-tesla-a100"
         gpuCount: 1
         cpu: 12
         disks: "local-disk " + disk_gb + " SSD" 
@@ -95,12 +98,13 @@ task basecall  {
         File? pairs = "pairs/pair_ids_filtered.txt"
     }
 }
-task makefastqs {
+task demux {
     input {
         File unmapped_bam
     }
     command <<<
-        samtools fastq -T "*" ~{unmapped_bam} > out.fastq
+        mkdir out
+        dorado demux -o ./out --no-classify ~{unmapped.bam} 
     >>>
     runtime {
         docker: "us-central1-docker.pkg.dev/aryeelab/docker/samtools:latest"
@@ -109,6 +113,6 @@ task makefastqs {
 		cpu: 8
     }
     output {
-        File fastq = "out.fastq"
+        Array[File] bams = glob("./out/*.bam")
     }
 }
