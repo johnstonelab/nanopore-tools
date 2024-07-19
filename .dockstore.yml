@@ -6,3 +6,6 @@ workflows:
    - name: bamtobedwithcoverage
      subclass: WDL
      primaryDescriptorPath: /bamtobedwithcoverage.wdl
+   - name: dorado_basecall_demux
+     subclass: WDL
+     primaryDescriptorPath: /dorado_basecall_demux.wdl
