@@ -23,7 +23,6 @@ workflow dorado_basecall {
             unmapped_bam = basecall.unmapped_bam
     }
     output {
-        File unmapped_bam = basecall.unmapped_bam
         File? duplex_unmapped_bam = basecall.duplex_unmapped_bam
         File? pairs = basecall.pairs
         Array[File] bams = demux.bams
