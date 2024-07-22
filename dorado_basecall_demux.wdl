@@ -85,14 +85,22 @@ task basecall  {
         fi
     >>>
     runtime {
-        gpuType: "nvidia-tesla-a100"
+        gpuType: "nvidia-tesla-v100"
         gpuCount: 1
         cpu: 12
         disks: "local-disk " + disk_gb + " SSD" 
-        memory: "85GB"
-        nvidiaDriverVersion: "550.90.07"
+        memory: "32GB"  
+        nvidiaDriverVersion: "470.161.03"
         zones: ["us-central1-a"] 
         docker: "us-central1-docker.pkg.dev/aryeelab/docker/dorado"
+        # gpuType: "nvidia-tesla-a100"
+        # gpuCount: 1
+        # cpu: 12
+        # disks: "local-disk " + disk_gb + " SSD" 
+        # memory: "85GB"
+        # nvidiaDriverVersion: "550.90.07"
+        # zones: ["us-central1-a"] 
+        # docker: "us-central1-docker.pkg.dev/aryeelab/docker/dorado"
     }
     output {
         File unmapped_bam = "~{sample_id}.unmapped.bam"
