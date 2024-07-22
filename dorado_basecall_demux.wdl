@@ -4,7 +4,6 @@ workflow dorado_basecall {
 
     input {
         String sample_id
-        String modtype
         File fast5_archive
         String basecall_model
         String kitname
@@ -15,7 +14,6 @@ workflow dorado_basecall {
         input:
             sample_id = sample_id,
             fast5_archive = fast5_archive,
-            modtype=modtype,
             basecall_model = basecall_model,
             kitname = kitname,
             disk_gb = disk_gb
@@ -26,8 +24,8 @@ workflow dorado_basecall {
     }
     output {
         File unmapped_bam = basecall.unmapped_bam
-        File? duplex_unmapped_bam = basecall.duplex_unmapped_bam
-        File? pairs = basecall.pairs
+        #File? duplex_unmapped_bam = basecall.duplex_unmapped_bam
+        #File? pairs = basecall.pairs
         Array[File] bams = demux.bams
     }
 
@@ -41,7 +39,6 @@ task basecall  {
         String sample_id
         File fast5_archive
         String basecall_model
-        String modtype
         String kitname
         Int disk_gb #= ceil(size(fast5_archive, "GB")*3) + 5
     }
@@ -70,19 +67,19 @@ task basecall  {
         fi
         
         # Simplex call with --emit-moves and --modified-bases
-        dorado basecaller ~{kitname} --no-trim hac,5mCG_5hmCG pod5s~{modtype} --emit-moves > ~{sample_id}.unmapped.bam
+        dorado basecaller ~{kitname} --no-trim ~{basecall_model} pod5s --emit-moves > ~{sample_id}.unmapped.bam
         #/dorado_models/~{basecall_model}
         # Identify potential pairs
-        duplex_tools pair --output_dir ./pairs ~{sample_id}.unmapped.bam
+        # duplex_tools pair --output_dir ./pairs ~{sample_id}.unmapped.bam
     
         # Stereo duplex basecall
-        if [ -f "pairs/pair_ids_filtered.txt" ]; then
-            NUM_PAIRS=$(wc -l pairs/pair_ids_filtered.txt)
-            echo "${NUM_PAIRS} pairs found. Duplex calling..."
-            dorado duplex /dorado_models/~{basecall_model} pod5s --pairs pairs/pair_ids_filtered.txt | samtools view -Sh > ~{sample_id}.duplex.unmapped.bam    
-        else 
-            echo "No pairs found."
-        fi
+        # if [ -f "pairs/pair_ids_filtered.txt" ]; then
+        #     NUM_PAIRS=$(wc -l pairs/pair_ids_filtered.txt)
+        #     echo "${NUM_PAIRS} pairs found. Duplex calling..."
+        #     dorado duplex /dorado_models/~{basecall_model} pod5s --pairs pairs/pair_ids_filtered.txt | samtools view -Sh > ~{sample_id}.duplex.unmapped.bam    
+        # else 
+        #     echo "No pairs found."
+        # fi
     >>>
     runtime {
         gpuType: "nvidia-tesla-v100"
@@ -93,19 +90,11 @@ task basecall  {
         nvidiaDriverVersion: "470.161.03"
         zones: ["us-central1-a"] 
         docker: "us-central1-docker.pkg.dev/aryeelab/docker/dorado"
-        # gpuType: "nvidia-tesla-a100"
-        # gpuCount: 1
-        # cpu: 12
-        # disks: "local-disk " + disk_gb + " SSD" 
-        # memory: "85GB"
-        # nvidiaDriverVersion: "550.90.07"
-        # zones: ["us-central1-a"] 
-        # docker: "us-central1-docker.pkg.dev/aryeelab/docker/dorado"
     }
     output {
         File unmapped_bam = "~{sample_id}.unmapped.bam"
-        File? duplex_unmapped_bam = "~{sample_id}.duplex.unmapped.bam"
-        File? pairs = "pairs/pair_ids_filtered.txt"
+        # File? duplex_unmapped_bam = "~{sample_id}.duplex.unmapped.bam"
+        # File? pairs = "pairs/pair_ids_filtered.txt"
     }
 }
 task demux {
