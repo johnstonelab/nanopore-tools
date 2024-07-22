@@ -117,10 +117,14 @@ task demux {
         dorado demux -o ./out --no-classify ~{unmapped_bam} 
     >>>
     runtime {
-        docker: "us-central1-docker.pkg.dev/aryeelab/docker/samtools:latest"
-		memory: "64G"
-		disks: "local-disk 500 SSD"
-		cpu: 8
+        gpuType: "nvidia-tesla-v100"
+        gpuCount: 1
+        cpu: 12
+        disks: "local-disk 500 SSD"
+        memory: "32GB"  
+        nvidiaDriverVersion: "470.161.03"
+        zones: ["us-central1-a"] 
+        docker: "us-central1-docker.pkg.dev/aryeelab/docker/dorado"
     }
     output {
         Array[File] bams = glob("./out/*.bam")
