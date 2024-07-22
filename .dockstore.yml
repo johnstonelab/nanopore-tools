@@ -9,3 +9,6 @@ workflows:
    - name: Dorado_basecall_demux
      subclass: WDL
      primaryDescriptorPath: /dorado_basecall_demux.wdl
+   - name: bamtobigwig-jhs
+     subclass: WDL
+     primaryDescriptorPath: /bamtobigwig.wdl
