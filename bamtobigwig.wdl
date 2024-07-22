@@ -5,7 +5,7 @@ workflow bamtobigwig {
     input {
         File genome
         File chromsizes
-        File fastq
+        File bam
         String modmotif
         String modkitoptions
         String mapqmin
