@@ -13,7 +13,7 @@ workflow bamtobigwig {
 
     call minimapalign {
         input:
-            fastq = fastq,
+            bam = bam,
             genome = genome
     }
     call filter {
@@ -35,7 +35,7 @@ workflow bamtobigwig {
             chromsizes = chromsizes
     }
     output {
-        File filteredbedgraph = tobedgraph.filteredbedgraph
+        File filteredcovbedgraph = tobedgraph.filteredcovbedgraph
         File filteredbw = tobigwig.filteredbw
     }
 
@@ -46,12 +46,11 @@ workflow bamtobigwig {
 }
 task minimapalign {
     input {
-        File fastq
+        File bam
         File genome
     }
     command <<<
-    samtools import -T "*" ~{fastq} > temp.bam
-    samtools fastq -T "*" temp.bam | minimap2 -ax map-ont -y ~{genome} - | samtools sort -T tmp -o sorted.bam
+    samtools fastq -T "*" ~{bam} | minimap2 -ax map-ont -y ~{genome} - | samtools sort -T tmp -o sorted.bam
     samtools index sorted.bam
     >>>
     runtime {
@@ -96,6 +95,7 @@ task tobedgraph {
     }
     command <<<
     modkit pileup ~{filteredbam} filtered.bed --motif ~{modmotif} ~{modkitoptions} --ref ~{genome} --ignore h -t 12 --combine-strands
+    awk '$10 > 0 {printf "%s\t%d\t%d\t%d\t%2.3f\n" , $1,$2,$3,$10,$11}' filtered.bed | sort -k1,1 -k2,2n > filtered_coverage.bedgraph
     awk '$10 > 0 {printf "%s\t%d\t%d\t%2.3f\n" , $1,$2,$3,$11}' filtered.bed | sort -k1,1 -k2,2n > filtered.bedgraph
     >>>
     runtime {
@@ -105,6 +105,7 @@ task tobedgraph {
 		cpu: 8
     }
     output {
+        File filteredcovbedgraph = "filtered_coverage.bedgraph"
         File filteredbedgraph = "filtered.bedgraph"
     }
 }
